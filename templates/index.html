@@ -4,9 +4,82 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lotto Number Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #4CAF50;
+        }
+        .lotto-numbers {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .number {
+            font-size: 24px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            color: #333;
+            font-weight: bold;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .result {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f1f1f1;
+            border-radius: 5px;
+        }
+        footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
-    <h1>Your Lotto Numbers</h1>
-    <p>{{ lotto_numbers }}</p>
+    <div class="container">
+        <h1>🎉 Your Lucky Lotto Numbers 🎉</h1>
+        <div>
+            {% for numbers in lotto_numbers %}
+            <div class="lotto-numbers">
+                {% for number in numbers %}
+                <div class="number">{{ number }}</div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="results">
+        <h2>회차별 당첨번호</h2>
+        {% for result in latest_results %}
+        <div class="result">
+            <strong>회차 {{ result.draw_no }}:</strong>
+            {{ result.numbers | join(', ') }} / Bonus: {{ result.bonus }}
+        </div>
+        {% endfor %}
+    </div>
 </body>
 </html>
