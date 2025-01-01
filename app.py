@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 import random
 import requests
 
@@ -9,40 +9,6 @@ def generate_lotto_numbers():
     # 5개의 번호 조합 생성
     lotto_numbers = generate_lotto_numbers_all_constraints()
     return lotto_numbers
-
-'''
-def generate_lotto_numbers_all_constraints_all():
-    results = []
-
-    while len(results) < 5:  # 5개의 로또 번호 조합 생성
-        # 번호 생성
-        numbers = sorted(random.sample(range(1, 46), 6))
-
-        # 모든 조건 확인
-        if (
-                validate_high_low(numbers) and
-                validate_odd_even(numbers) and
-                validate_sum_constraint(numbers) and
-                validate_end_digit_constraint(numbers) and
-                validate_same_range_constraint(numbers) and
-                validate_consecutive_constraint(numbers) and
-                validate_prime_constraint(numbers) and
-                validate_perfect_squares_constraint(numbers) and
-                validate_composite_constraint(numbers) and
-                validate_end_digit_sum_constraint(numbers) and
-                validate_mirror_numbers_constraint(numbers) and
-                validate_multiple_of_three_constraint(numbers) and
-                validate_multiple_of_four_constraint(numbers) and
-                validate_multiple_of_five_constraint(numbers) and
-                validate_corner_numbers_constraint(numbers) and
-                validate_color_constraint(numbers) and
-                validate_double_numbers_constraint(numbers) and
-                validate_ac_value_constraint(numbers)
-        ):
-            results.append(numbers)
-
-    return results
-'''
 
 def generate_lotto_numbers_all_constraints():
     results = []
@@ -152,6 +118,104 @@ def validate_ac_value_constraint(numbers):
             differences.add(abs(numbers[i] - numbers[j]))
     ac_value = len(differences)
     return ac_value >= 7
+
+# Function to fetch the latest 5 lotto results
+def fetch_latest_lotto_results():
+    results = []
+    latest_draw_no = get_latest_draw_no()
+    if latest_draw_no == 0:  # If we couldn't fetch the latest draw number
+        return results
+    for draw_no in range(latest_draw_no, latest_draw_no - 5, -1):
+        response = requests.get(f'https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo={draw_no}')
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('returnValue') == 'success':
+                numbers = [
+                    data.get('drwtNo1'), data.get('drwtNo2'), data.get('drwtNo3'),
+                    data.get('drwtNo4'), data.get('drwtNo5'), data.get('drwtNo6')
+                ]
+                results.append({
+                    'draw_no': data.get('drwNo'),
+                    'numbers': numbers,
+                    'bonus': data.get('bnusNo')
+                })
+    return results
+
+# Function to fetch the latest draw number
+def get_latest_draw_no():
+    response = requests.get('https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo=1151')
+    if response.status_code == 200:
+        data = response.json()
+        if data.get('returnValue') == 'success':
+            return data.get('drwNo')
+    return 0
+
+@app.route('/')
+def home():
+    lotto_numbers = generate_lotto_numbers_all_constraints()  # Generate numbers with constraints
+    latest_results = fetch_latest_lotto_results()  # Fetch latest lotto results
+
+    # Simulate until match
+    # winning_numbers = fetch_latest_lotto()
+    # attempts = simulate_lotto_until_match(winning_numbers)
+    # last_generated = generate_lotto_numbers_random()
+
+    # num = 0
+    # while num < attempts:
+    #    last_generated = generate_lotto_numbers_random()
+
+    return render_template(
+        'index.html',
+        lotto_numbers=lotto_numbers,
+        latest_results=latest_results
+        # winning_numbers=winning_numbers,
+        # attempts=attempts,
+        # last_generated=last_generated
+    )
+
+#새 번호 생성
+@app.route('/generate-numbers', methods=['GET'])
+def generate_numbers():
+    lotto_numbers = generate_lotto_numbers_all_constraints()
+    return jsonify({'lotto_numbers': lotto_numbers})
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+'''
+def generate_lotto_numbers_all_constraints_all():
+    results = []
+
+    while len(results) < 5:  # 5개의 로또 번호 조합 생성
+        # 번호 생성
+        numbers = sorted(random.sample(range(1, 46), 6))
+
+        # 모든 조건 확인
+        if (
+                validate_high_low(numbers) and
+                validate_odd_even(numbers) and
+                validate_sum_constraint(numbers) and
+                validate_end_digit_constraint(numbers) and
+                validate_same_range_constraint(numbers) and
+                validate_consecutive_constraint(numbers) and
+                validate_prime_constraint(numbers) and
+                validate_perfect_squares_constraint(numbers) and
+                validate_composite_constraint(numbers) and
+                validate_end_digit_sum_constraint(numbers) and
+                validate_mirror_numbers_constraint(numbers) and
+                validate_multiple_of_three_constraint(numbers) and
+                validate_multiple_of_four_constraint(numbers) and
+                validate_multiple_of_five_constraint(numbers) and
+                validate_corner_numbers_constraint(numbers) and
+                validate_color_constraint(numbers) and
+                validate_double_numbers_constraint(numbers) and
+                validate_ac_value_constraint(numbers)
+        ):
+            results.append(numbers)
+
+    return results
+'''
 
 '''
 # 1 고저
@@ -457,43 +521,25 @@ def generate_lotto_numbers_with_ac_value_constraint():
             return numbers
 '''
 
-# Function to fetch the latest 5 lotto results
-def fetch_latest_lotto_results():
-    results = []
-    latest_draw_no = get_latest_draw_no()
-    if latest_draw_no == 0:  # If we couldn't fetch the latest draw number
-        return results
-    for draw_no in range(latest_draw_no, latest_draw_no - 5, -1):
-        response = requests.get(f'https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo={draw_no}')
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('returnValue') == 'success':
-                numbers = [
-                    data.get('drwtNo1'), data.get('drwtNo2'), data.get('drwtNo3'),
-                    data.get('drwtNo4'), data.get('drwtNo5'), data.get('drwtNo6')
-                ]
-                results.append({
-                    'draw_no': data.get('drwNo'),
-                    'numbers': numbers,
-                    'bonus': data.get('bnusNo')
-                })
-    return results
-
-# Function to fetch the latest draw number
-def get_latest_draw_no():
+'''
+# 최신 회차에서 몇번을 돌려 1등이 나오는지 확인 후 횟수대로 돌리기
+def fetch_latest_lotto():
     response = requests.get('https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo=1151')
     if response.status_code == 200:
         data = response.json()
         if data.get('returnValue') == 'success':
-            return data.get('drwNo')
-    return 0
-
-@app.route('/')
-def home():
-    lotto_numbers = generate_lotto_numbers_all_constraints()  # Generate numbers with constraints
-    latest_results = fetch_latest_lotto_results()  # Fetch latest lotto results
-    return render_template('index.html', lotto_numbers=lotto_numbers, latest_results=latest_results)
-
-if __name__ == '__main__':
-    app.run(debug=True)
-
+            return sorted([
+                data.get('drwtNo1'), data.get('drwtNo2'), data.get('drwtNo3'),
+                data.get('drwtNo4'), data.get('drwtNo5'), data.get('drwtNo6')
+            ])
+    return []
+def generate_lotto_numbers_random():
+    return sorted(random.sample(range(1, 46), 6))
+def simulate_lotto_until_match(winning_numbers):
+    attempts = 0
+    while True:
+        attempts += 1
+        generated_numbers = generate_lotto_numbers_random()
+        if generated_numbers == winning_numbers:
+            return attempts
+'''

@@ -51,6 +51,23 @@
             background: #f1f1f1;
             border-radius: 5px;
         }
+        .results div {
+            margin: 10px 0;
+            font-size: 18px;
+        }
+        .refresh-btn, .generate-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .refresh-btn:hover, .generate-btn:hover {
+            background-color: #45a049;
+        }
         footer {
             margin-top: 20px;
             font-size: 14px;
@@ -61,7 +78,7 @@
 <body>
     <div class="container">
         <h1>🎉 로또 추천 번호 🎉</h1>
-        <div>
+        <div id="lotto-container">
             {% for numbers in lotto_numbers %}
             <div class="lotto-numbers">
                 {% for number in numbers %}
@@ -70,6 +87,7 @@
             </div>
             {% endfor %}
         </div>
+        <button class="generate-btn" onclick="generateNewNumbers()">🔄 새 번호 생성</button>
     </div>
 
     <div class="results">
@@ -81,5 +99,28 @@
         </div>
         {% endfor %}
     </div>
+
+    <script>
+        function generateNewNumbers() {
+            fetch('/generate-numbers')
+                .then(response => response.json())
+                .then(data => {
+                    const lottoContainer = document.getElementById('lotto-container');
+                    lottoContainer.innerHTML = '';  // 기존 번호 제거
+                    data.lotto_numbers.forEach(numbers => {
+                        const numberDiv = document.createElement('div');
+                        numberDiv.classList.add('lotto-numbers');
+                        numbers.forEach(num => {
+                            const numDiv = document.createElement('div');
+                            numDiv.classList.add('number');
+                            numDiv.textContent = num;
+                            numberDiv.appendChild(numDiv);
+                        });
+                        lottoContainer.appendChild(numberDiv);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
 </body>
 </html>
