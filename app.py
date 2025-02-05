@@ -1,6 +1,7 @@
 from flask import Flask, render_template, jsonify
 import random
 import requests
+from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 
@@ -141,13 +142,19 @@ def fetch_latest_lotto_results():
                 })
     return results
 
-# Function to fetch the latest draw number
 def get_latest_draw_no():
-    response = requests.get('https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo=1151')
+    url = 'https://www.dhlottery.co.kr/gameResult.do?method=byWin'
+    response = requests.get(url)
     if response.status_code == 200:
-        data = response.json()
-        if data.get('returnValue') == 'success':
-            return data.get('drwNo')
+        soup = BeautifulSoup(response.text, 'html.parser')
+        # 최신 회차 번호는 페이지의 특정 위치에 있으므로 해당 요소를 찾아야 합니다.
+        # 예를 들어, 회차 번호가 <h4> 태그 내에 있다면:
+        draw_no_tag = soup.find('h4')
+        if draw_no_tag:
+            draw_no_text = draw_no_tag.get_text()
+            # '제1157회'와 같은 형식이라면 숫자만 추출
+            draw_no = int(''.join(filter(str.isdigit, draw_no_text)))
+            return draw_no
     return 0
 
 @app.route('/')
